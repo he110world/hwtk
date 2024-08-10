@@ -10,6 +10,10 @@ function _help_and_exit(cmd) {
             h = 'Usage: hwtk comparedir <dir1> <dir2>'
         } break
 
+        case 'copyfile': {
+            h = 'Usage: hwtk copyfile <source_file> <target_file>'
+        } break
+
         default:
             h = 'Usage: hwtk <cmd> <args...>'
             break
@@ -37,7 +41,6 @@ function _is_dir(f) {
         return s.isDirectory()
     }
     catch (e) {
-        console.error(e)
         return false
     }
 }
@@ -86,13 +89,35 @@ class Tools {
         if (!d1 || !d2 || !fs.existsSync(d1) || !fs.existsSync(d2) || !_is_dir(d1) || !_is_dir(d2)) {
             _help_and_exit('comparedir')
         }
-    
+
         const list1 = _get_files(d1)
         const list2 = _get_files(d2)
-    
+
         const diff = _compare_lists(list1, list2)
 
         return diff
+    }
+
+    copyfile(source_file, target_file) {
+        if (!source_file || !target_file || !fs.existsSync(source_file)) {
+            _help_and_exit('copyfile')
+        }
+
+        //copy file to dir
+        if (_is_dir(target_file)) {
+            fs.cpSync(source_file, target_file)
+        }
+        else {
+            const target_dir = path.dirname(target_file)
+            if (!fs.existsSync(target_dir)) {
+                fs.mkdirSync(target_dir, { recursive: true })
+            }
+            else if (!_is_dir(target_dir)) {
+                _help_and_exit('copyfile')
+            }
+    
+            fs.copyFileSync(source_file, target_file)
+        }
     }
 }
 
@@ -105,13 +130,13 @@ if (require.main === module) {
         if (!args[0]) {
             _help_and_exit()
         }
-    
+
         switch (args[0]) {
             case 'help': {
                 _help_and_exit(args[1])
                 break
             }
-    
+
             default: {
                 if (typeof tools[args[0]] === 'function') {
                     const ret = tools[args[0]].apply(tools, args.slice(1))
