@@ -115,9 +115,17 @@ class Tools {
             else if (!_is_dir(target_dir)) {
                 _help_and_exit('copyfile')
             }
-    
+
             fs.copyFileSync(source_file, target_file)
         }
+    }
+
+    writefile(file_path, content, opts) {
+        const dir = path.dirname(file_path)
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true })
+        }
+        return fs.writeFileSync(file_path, content, opts)
     }
 }
 
